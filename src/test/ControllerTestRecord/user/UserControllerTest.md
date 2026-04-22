@@ -1,3 +1,4 @@
+注意：脚本使用 assertThrows 捕获异常以复现缺陷，因此测试执行通过，但系统行为不满足健壮性预期
 ## 1. UserController 功能分析
 
 根据 `UserController.java`，该 Controller 包含以下接口：
