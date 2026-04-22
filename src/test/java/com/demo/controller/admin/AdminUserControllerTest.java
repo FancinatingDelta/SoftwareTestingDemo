@@ -108,18 +108,20 @@ class AdminUserControllerTest {
                 .andExpect(redirectedUrl("user_manage"));
 
         // 步骤3: 查询列表验证用户存在（时序依赖：必须在添加之后）
-        MvcResult result = mockMvc.perform(get("/userList.do").param("page", "1"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String responseBody = result.getResponse().getContentAsString();
-        User[] users = objectMapper.readValue(responseBody, User[].class);
-        
+        // 遍历分页查询直到找到新用户（升序排列时新用户可能在后面页）
         int createdUserId = -1;
-        for (User u : users) {
-            if (userID.equals(u.getUserID())) {
-                createdUserId = u.getId();
-                break;
+        for (int page = 1; page <= 100 && createdUserId == -1; page++) {
+            MvcResult result = mockMvc.perform(get("/userList.do").param("page", String.valueOf(page)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            String responseBody = result.getResponse().getContentAsString();
+            User[] users = objectMapper.readValue(responseBody, User[].class);
+            if (users.length == 0) break; // 无更多数据
+            for (User u : users) {
+                if (userID.equals(u.getUserID())) {
+                    createdUserId = u.getId();
+                    break;
+                }
             }
         }
         assertTrue(createdUserId > 0, "新建用户应在列表中存在");
