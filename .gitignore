@@ -1,0 +1,17 @@
+# 编辑器配置
+.idea/
+.vscode/
+*.swp
+
+# 依赖包
+node_modules/
+vendor/
+
+# 环境变量
+.env
+.env.local
+
+# 编译产物
+dist/
+build/
+*.log
