@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(VenueController.class)
-class VenueControllerTest {
+public class VenueControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
