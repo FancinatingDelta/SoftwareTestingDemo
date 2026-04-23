@@ -1,3 +1,4 @@
+注意：脚本使用 assertThrows 捕获异常以复现缺陷，因此测试执行通过，但系统行为不满足健壮性预期
 ## 1. UserController 功能分析
 
 根据 `UserController.java`，该 Controller 包含以下接口：
@@ -45,7 +46,7 @@ src/test/java/com/demo/controller/user/UserControllerTest.java
 |---|---|---|---|---|---|---|
 | 页面访问 | UC-INT-001 | 访问注册页面，验证 `/signup` 返回注册视图。测试方法：正常路径（等价类：合法请求）。 | GET `/signup` | HTTP 200，返回视图名 `signup`。 | HTTP 200，返回视图名 `signup`。 | 通过 |
 | 页面访问 | UC-INT-002 | 访问登录页面，验证 `/login` 返回登录视图。测试方法：正常路径（等价类：合法请求）。 | GET `/login` | HTTP 200，返回视图名 `login`。 | HTTP 200，返回视图名 `login`。 | 通过 |
-| 页面访问 | UC-INT-003 | 访问用户信息页面，验证 `/user_info` 返回用户信息视图。测试方法：正常路径（等价类：合法请求）。 | GET `/user_info` | HTTP 200，返回视图名 `user_info`。 | HTTP 200，返回视图名 `user_info`。 | 通过 |
+| 页面访问 | UC-INT-003 | 访问用户信息页面，验证 `/user_info` 返回用户信息视图。测试方法：正常路径（等价类：合法请求）。 | GET `/user_info`；Session 预置 user（至少包含 userName 非空） | HTTP 200，返回视图名 `user_info`。 | HTTP 200，返回视图名 `user_info`。 | 通过 |
 | 登录认证 | UC-INT-004 | 普通用户登录成功：覆盖 `isadmin==0` 分支并验证写入 Session。测试方法：等价类划分 + 判定/分支覆盖。 | POST `/loginCheck.do`；`userID=u001,password=pw`；Mock `checkLogin` 返回 `isadmin=0` 用户 | HTTP 200，响应体 `/index`，Session 中存在 `user`。 | HTTP 200，响应体 `/index`，Session 中存在 `user`。 | 通过 |
 | 登录认证 | UC-INT-005 | 管理员登录成功：覆盖 `isadmin==1` 分支并验证写入 Session。测试方法：等价类划分 + 判定/分支覆盖。 | POST `/loginCheck.do`；`userID=admin01,password=pw`；Mock `checkLogin` 返回 `isadmin=1` 用户 | HTTP 200，响应体 `/admin_index`，Session 中存在 `admin`。 | HTTP 200，响应体 `/admin_index`，Session 中存在 `admin`。 | 通过 |
 | 登录认证 | UC-INT-006 | 登录失败：覆盖 `user==null` 分支并验证不写入 Session。测试方法：无效等价类 + 判定/分支覆盖。 | POST `/loginCheck.do`；`userID=u001,password=wrong`；Mock `checkLogin` 返回 `null` | HTTP 200，响应体 `false`，Session 中不存在 `user/admin`。 | HTTP 200，响应体 `false`，Session 中不存在 `user/admin`。 | 通过 |

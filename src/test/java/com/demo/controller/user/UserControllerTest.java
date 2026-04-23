@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(UserController.class)
-class UserControllerTest {
+public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -49,7 +49,13 @@ class UserControllerTest {
 
     @Test
     void userInfoPage_shouldReturnUserInfoView() throws Exception {
-        mockMvc.perform(get("/user_info"))
+        // user_info.html 依赖 session.user.userName 等字段，需预置登录态避免模板渲染时报错
+        User user = new User();
+        user.setUserID("u001");
+        user.setUserName("Alice");
+
+        mockMvc.perform(get("/user_info")
+                        .sessionAttr("user", user))
                 .andExpect(status().isOk())
                 .andExpect(view().name("user_info"));
     }
