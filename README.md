@@ -8,9 +8,10 @@
 
 | 组件 | 版本要求 |
 |------|---------|
-| JDK | 8+ |
+| JDK | 16，21 |
 | Maven | 3.6+ |
 | MySQL | 8.0+ |
+jdk只用了16和21的版本运行过
 
 ## 环境配置
 
@@ -29,25 +30,19 @@ spring:
 
 ### 2. 数据库初始化
 
-创建数据库（首次运行）：
+**步骤1**：打开 CMD，进入 MySQL 命令行
+```bash
+mysql -u root -p
+```
+输入密码后进入 MySQL 命令行界面。
+
+**步骤2**：创建数据库
 ```sql
 CREATE DATABASE demo_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
+这个进入了mysql的cmd界面最好先留着不要exit，可能会有一丢丢影响
 
-如需导入初始测试数据，执行项目根目录的 SQL 文件：
-```bash
-mysql -u root -p demo_db < demo_db.sql
-```
-
-## 运行测试
-
-### 运行指定测试类
-
-```powershell
-# PowerShell（注意引号包裹）
-mvn test "-Dtest=AdminOrderControllerTest,AdminUserControllerTest"
-```
-
+## 3.运行测试
 
 ### 运行所有测试
 
