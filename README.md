@@ -8,7 +8,7 @@
 
 | 组件 | 版本要求 |
 |------|---------|
-| JDK | 21+ |
+| JDK | 8+ |
 | Maven | 3.6+ |
 | MySQL | 8.0+ |
 
@@ -48,10 +48,6 @@ mysql -u root -p demo_db < demo_db.sql
 mvn test "-Dtest=AdminOrderControllerTest,AdminUserControllerTest"
 ```
 
-```cmd
-# CMD
-mvn test -Dtest=AdminOrderControllerTest,AdminUserControllerTest
-```
 
 ### 运行所有测试
 
@@ -96,6 +92,26 @@ src/
 
 ## 测试覆盖范围
 
+### 测试统计
+
+| 测试类型 | 测试类数 | @Test 方法数 |
+|---------|---------|-------------|
+| 单元测试 | 7 | 77 |
+| 集成测试 | 11 | 125 |
+| **总计** | **18** | **202** |
+
+### 已完成的单元测试
+
+| 测试类 | 方法数 | 覆盖技术 |
+|-------|-------|---------|
+| MessageServiceImplTest | 12 | 等价类 + 边界值 |
+| NewsServiceImplTest | 10 | 等价类 + 边界值 |
+| OrderServiceImplTest | 15 | 判定覆盖 + 时序组合 |
+| UserServiceImplTest | 14 | 等价类 + 边界值 |
+| VenueServiceImplTest | 16 | 等价类 + 边界值 |
+| MessageVoServiceImplTest | 5 | 判定覆盖 |
+| VenueVoServiceImplTest | 5 | 判定覆盖 |
+
 ### 已完成的集成测试
 
 | 测试类 | 方法数 | 覆盖技术 |
@@ -103,6 +119,14 @@ src/
 | UserControllerTest | 16 | 等价类、边界值、判定覆盖 |
 | AdminOrderControllerTest | 12 | 判定覆盖 + 边界值 |
 | AdminUserControllerTest | 11 | 判定覆盖 + 时序组合 |
+| AdminMessageControllerTest | 12 | 等价类 + 边界值 |
+| AdminNewsControllerTest | 13 | 判定覆盖 + 等价类 |
+| AdminVenueControllerTest | 16 | 边界值 + 异常测试 |
+| MessageControllerTest | 10 | 等价类 + 边界值 |
+| NewsControllerTest | 6 | 等价类 |
+| OrderControllerTest | 14 | 判定覆盖 + 时序组合 |
+| VenueControllerTest | 8 | 等价类 + 边界值 |
+| UserLoginControllerTest | 7 | 判定覆盖 |
 
 ### 测试技术说明
 
@@ -148,9 +172,3 @@ mvn test "-Dtest=AdminOrderControllerTest,AdminUserControllerTest"
 - **测试框架**：JUnit 5 + SpringBootTest + MockMvc
 - **构建工具**：Maven
 
-## 待完成工作
-
-- [ ] AdminVenueController 集成测试（8个方法，含文件上传）
-- [ ] AdminMessageController 集成测试（4个方法）
-- [ ] AdminNewsController 集成测试（7个方法）
-- [ ] Service 层单元测试（5个 ServiceImpl 类）
