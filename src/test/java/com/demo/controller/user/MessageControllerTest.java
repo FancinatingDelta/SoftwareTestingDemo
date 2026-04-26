@@ -3,6 +3,7 @@ package com.demo.controller.user;
 import com.demo.entity.Message;
 import com.demo.entity.User;
 import com.demo.entity.vo.MessageVo;
+import com.demo.exception.LoginException;
 import com.demo.service.MessageService;
 import com.demo.service.MessageVoService;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.NestedServletException;
 
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +80,21 @@ public class MessageControllerTest {
     @Test
     void messageListPage_shouldRecordActual_whenNotLoggedIn() {
         // Controller 会先查 messageService.findPassState(...)，但最终因 session.user==null 抛 LoginException
+        Page<Message> passPage = new PageImpl<>(
+                Collections.emptyList(),
+                PageRequest.of(0, 5, Sort.by("time").descending()),
+                0
+        );
+        Page<Message> userPage = new PageImpl<>(
+                Collections.emptyList(),
+                PageRequest.of(0, 5, Sort.by("time").descending()),
+                0
+        );
+
+        when(messageService.findPassState(any())).thenReturn(passPage);
+        when(messageVoService.returnVo(eq(Collections.emptyList()))).thenReturn(Collections.emptyList());
+        when(messageService.findByUser(eq("u001"), any())).thenReturn(userPage);
+
         try {
             mockMvc.perform(get("/message_list"));
             TestRecordUtil.recordSuccess("messageListPage(未登录)");

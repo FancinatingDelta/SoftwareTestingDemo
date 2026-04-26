@@ -12,10 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * AdminVenueController 集成测试
@@ -215,6 +212,55 @@ class AdminVenueControllerTest {
     }
 
     /**
+     * 测试：修改场馆 - 图片名称为空（记录实际结果）
+     */
+    @Test
+    void modifyVenue_shouldRecordActualWithEmptyPictureName() throws Exception {
+        MockMultipartFile file =
+                new MockMultipartFile("picture", "", "image/jpeg", "dummy".getBytes());
+
+        mockMvc.perform(multipart("/modifyVenue.do")
+                        .file(file)
+                        .param("picture", "")
+                        .param("venueID", "4003")
+                        .param("venueName", "UpdatedVenue")
+                        .param("address", "UpdatedAddress")
+                        .param("description", "UpdatedDesc")
+                        .param("price", "200")
+                        .param("open_time", "08:00")
+                        .param("close_time", "22:00"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("venue_manage"));
+
+        TestRecordUtil.recordSuccess("modifyVenue(正常修改-图片名为空)");
+    }
+
+    /**
+     * 测试：修改场馆 - 上传图片
+     * 等价类：有效图片
+     */
+    @Test
+    void modifyVenue_shouldSavePictureWhenUploaded() throws Exception {
+        MockMultipartFile file =
+                new MockMultipartFile("picture", "test.jpg", "image/jpeg", "dummy".getBytes());
+
+        mockMvc.perform(multipart("/modifyVenue.do")
+                        .file(file)
+                        .param("picture", "test.jpg")
+                        .param("venueID", "4003")
+                        .param("venueName", "VenueWithPic")
+                        .param("address", "Addr")
+                        .param("description", "Desc")
+                        .param("price", "150")
+                        .param("open_time", "09:00")
+                        .param("close_time", "21:00"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("venue_manage"));
+
+        TestRecordUtil.recordSuccess("modifyVenue(带图片上传)");
+    }
+
+    /**
      * 测试：添加场馆 - 正常参数（无文件上传，记录实际结果）
      * 语句覆盖：addVenue方法全路径
      * 注：multipart无文件时FileUtil可能异常，记录实际响应
@@ -222,7 +268,12 @@ class AdminVenueControllerTest {
     @Test
     void addVenue_shouldRecordActual_whenNormalParams() {
         try {
+            MockMultipartFile file =
+                    new MockMultipartFile("picture", "test.jpg", "image/jpeg", "dummy".getBytes());
+
             mockMvc.perform(multipart("/addVenue.do")
+                            .file(file)
+                            .param("picture", "test.jpg")
                             .param("venueName", "NewTestVenue")
                             .param("address", "TestAddress")
                             .param("description", "TestDescription")
@@ -243,7 +294,12 @@ class AdminVenueControllerTest {
     @Test
     void addVenue_shouldRecordActual_whenEmptyParams() {
         try {
+            MockMultipartFile file =
+                    new MockMultipartFile("picture", "test.jpg", "image/jpeg", "dummy".getBytes());
+
             mockMvc.perform(multipart("/addVenue.do")
+                            .file(file)
+                            .param("picture", "test.jpg")
                             .param("venueName", "")
                             .param("address", "")
                             .param("description", "")
@@ -264,7 +320,11 @@ class AdminVenueControllerTest {
     @Test
     void addVenue_shouldRecordActual_whenNegativePrice() {
         try {
+            MockMultipartFile file =
+                    new MockMultipartFile("picture", "test.jpg", "image/jpeg", "dummy".getBytes());
             mockMvc.perform(multipart("/addVenue.do")
+                            .file(file)
+                            .param("picture", "test.jpg")
                             .param("venueName", "TestVenue")
                             .param("address", "TestAddr")
                             .param("description", "TestDesc")
@@ -299,6 +359,7 @@ class AdminVenueControllerTest {
                     "picture", "test.jpg", "image/jpeg", "test image content".getBytes());
             mockMvc.perform(multipart("/addVenue.do")
                             .file(file)
+                            .param("picture", "test.jpg")
                             .param("venueName", "VenueWithPic")
                             .param("address", "PicAddr")
                             .param("description", "PicDesc")
@@ -308,6 +369,29 @@ class AdminVenueControllerTest {
             TestRecordUtil.recordSuccess("addVenue(带文件)");
         } catch (Exception e) {
             TestRecordUtil.recordException("addVenue(带文件)", e);
+        }
+    }
+
+    /**
+     * 测试：添加场馆 - 图片名称为空（记录实际结果）
+     */
+    @Test
+    void addVenue_shouldRecordActual_withEmptyFileName() {
+        try {
+            MockMultipartFile file = new MockMultipartFile(
+                    "picture", "", "image/jpeg", "test image content".getBytes());
+            mockMvc.perform(multipart("/addVenue.do")
+                    .file(file)
+                    .param("picture", "")
+                    .param("venueName", "VenueWithPic")
+                    .param("address", "PicAddr")
+                    .param("description", "PicDesc")
+                    .param("price", "200")
+                    .param("open_time", "09:00")
+                    .param("close_time", "21:00"));
+            TestRecordUtil.recordSuccess("addVenue(带文件)");
+        } catch (Exception e) {
+            TestRecordUtil.recordException("addVenue(文件名为空)", e);
         }
     }
 }

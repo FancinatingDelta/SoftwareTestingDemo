@@ -1,10 +1,10 @@
 package com.demo.controller.user;
 
+import com.demo.controller.admin.TestRecordUtil;
 import com.demo.entity.Order;
 import com.demo.entity.User;
 import com.demo.entity.Venue;
 import com.demo.entity.vo.OrderVo;
-import com.demo.entity.vo.VenueOrder;
 import com.demo.service.OrderService;
 import com.demo.service.OrderVoService;
 import com.demo.service.VenueService;
@@ -17,27 +17,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.NestedServletException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import com.demo.controller.admin.TestRecordUtil;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
 public class OrderControllerTest {
@@ -157,6 +148,13 @@ public class OrderControllerTest {
     }
 
     @Test
+    void orderPlace_shouldReturnOrderPlaceView_whenAccessed() throws Exception {
+        mockMvc.perform(get("/order_place"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("order_place"));
+    }
+
+    @Test
     void orderPlaceDo_shouldReturnOrderPlaceView_andBindVenue() throws Exception {
         Venue venue = new Venue();
         venue.setVenueID(7);
@@ -203,6 +201,77 @@ public class OrderControllerTest {
             TestRecordUtil.recordSuccess("addOrder(未登录)");
         } catch (Exception e) {
             TestRecordUtil.recordException("addOrder(未登录)", e);
+        }
+    }
+
+    @Test
+    void editOrder_shouldReturnOrderEditView_whenLoggedIn() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+
+        Order order = new Order();
+        order.setOrderID(1001);
+        order.setVenueID(2001);
+
+        Venue venue = new Venue();
+        venue.setVenueID(2001);
+
+        when(orderService.findById(1001)).thenReturn(order);
+        when(venueService.findByVenueID(2001)).thenReturn(venue);
+
+        mockMvc.perform(get("/modifyOrder.do")
+                        .param("orderID", "1001")
+                        .sessionAttr("user", user))
+                .andExpect(status().isOk())
+                .andExpect(view().name("order_edit"));
+    }
+
+    @Test
+    void editOrder_shouldRecordActual_whenNotLoggedIn() {
+        when(orderService.findById(1001)).thenReturn(new Order());
+
+        try {
+            mockMvc.perform(get("/modifyOrder.do")
+                    .param("orderID", "1001"));
+            TestRecordUtil.recordSuccess("editOrder(未登录)");
+        } catch (Exception e) {
+            TestRecordUtil.recordException("editOrder(未登录)", e);
+        }
+    }
+
+    @Test
+    void modifyOrder_shouldRedirectToOrderManage_whenLoggedIn() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+
+        mockMvc.perform(post("/modifyOrder").sessionAttr("user", user)
+                        .param("venueName", "VenueA")
+                        .param("startTime", "2026-01-01 10:00")
+                        .param("hours", "2")
+                        .param("orderID", "1001"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("order_manage"));
+
+        verify(orderService).updateOrder(
+                eq(1001),
+                eq("VenueA"),
+                any(LocalDateTime.class),
+                eq(2),
+                eq("u001")
+        );
+    }
+
+    @Test
+    void modifyOrder_shouldRecordActual_whenNotLoggedIn() {
+        try {
+            mockMvc.perform(post("/modifyOrder")
+                    .param("venueName", "VenueA")
+                    .param("startTime", "2026-01-02 10:00")
+                    .param("hours", "2")
+                    .param("orderID", "1001"));
+            TestRecordUtil.recordSuccess("modifyOrder(未登录)");
+        } catch (Exception e) {
+            TestRecordUtil.recordException("modifyOrder(未登录)", e);
         }
     }
 

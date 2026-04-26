@@ -6,20 +6,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.demo.controller.admin.TestRecordUtil;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
@@ -62,6 +64,114 @@ public class UserControllerTest {
     }
 
     @Test
+    void updateUser_shouldNotSavePicture_whenNoPicture() throws Exception {
+        User oldUser = new User();
+        oldUser.setUserID("u001");
+        oldUser.setUserName("OldName");
+
+        when(userService.findByUserID("u001")).thenReturn(oldUser);
+
+        assertThrows(NestedServletException.class,
+                () -> mockMvc.perform(post("/updateUser.do")
+                                .param("userName", "NewName")
+                                .param("userID", "u001")
+                                .param("passwordNew", "")
+                                .param("email", "test@test.com")
+                                .param("phone", "123456")
+                                .sessionAttr("user", oldUser))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("user_info")));
+    }
+
+    @Test
+    void updateUser_shouldNotSavePicture_whenEmptyPictureName() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+
+        MockMultipartFile picture =
+                new MockMultipartFile("picture", "",
+                        MediaType.IMAGE_PNG_VALUE, "dummy".getBytes());
+
+        when(userService.findByUserID("u001")).thenReturn(user);
+
+        mockMvc.perform(multipart("/updateUser.do")
+                        .file(picture)
+                        .param("userName", "Name")
+                        .param("userID", "u001")
+                        .param("email", "a@a.com")
+                        .param("phone", "000")
+                        .sessionAttr("user", user))
+                .andExpect(redirectedUrl("user_info"));
+
+    }
+
+    @Test
+    void updateUser_shouldSavePicture_whenPictureProvided() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+
+        MockMultipartFile picture =
+                new MockMultipartFile("picture", "avatar.png",
+                        MediaType.IMAGE_PNG_VALUE, "dummy".getBytes());
+
+        when(userService.findByUserID("u001")).thenReturn(user);
+
+        mockMvc.perform(multipart("/updateUser.do")
+                        .file(picture)
+                        .param("userName", "Name")
+                        .param("userID", "u001")
+                        .param("email", "a@a.com")
+                        .param("phone", "000")
+                        .sessionAttr("user", user))
+                .andExpect(redirectedUrl("user_info"));
+
+    }
+
+    @Test
+    void updateUser_shouldNotChangePassword_whenPasswordIsEmpty() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+        user.setPassword("oldPwd");
+
+        MockMultipartFile picture =
+                new MockMultipartFile("picture", "avatar.png",
+                        MediaType.IMAGE_PNG_VALUE, "dummy".getBytes());
+
+        when(userService.findByUserID("u001")).thenReturn(user);
+
+        mockMvc.perform(multipart("/updateUser.do")
+                .file(picture)
+                .param("userName", "Name")
+                .param("userID", "u001")
+                .param("passwordNew", "")
+                .param("email", "a@a.com")
+                .param("phone", "123")
+                .sessionAttr("user", user));
+    }
+
+    @Test
+    void updateUser_shouldChangePassword_whenPasswordIsValid() throws Exception {
+        User user = new User();
+        user.setUserID("u001");
+        user.setPassword("oldPwd");
+
+        MockMultipartFile picture =
+                new MockMultipartFile("picture", "avatar.png",
+                        MediaType.IMAGE_PNG_VALUE, "dummy".getBytes());
+
+        when(userService.findByUserID("u001")).thenReturn(user);
+
+        mockMvc.perform(multipart("/updateUser.do")
+                .file(picture)
+                .param("userName", "Name")
+                .param("userID", "u001")
+                .param("passwordNew", "123456")
+                .param("email", "a@a.com")
+                .param("phone", "123")
+                .sessionAttr("user", user));
+    }
+
+    @Test
     void loginCheck_shouldSetUserSession_andReturnIndexPath_whenNormalUser() throws Exception {
         User normalUser = new User();
         normalUser.setUserID("u001");
@@ -91,6 +201,36 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(equalTo("/admin_index")))
                 .andExpect(request().sessionAttribute("admin", adminUser));
+    }
+
+    @Test
+    void loginCheck_shouldReject_whenInvalidAdminFlag() throws Exception {
+        User invalidUser = new User();
+        invalidUser.setUserID("invalid01");
+        invalidUser.setIsadmin(2);
+
+        when(userService.checkLogin(eq("invalid01"), eq("pw"))).thenReturn(invalidUser);
+
+        mockMvc.perform(post("/loginCheck.do")
+                        .param("userID", "invalid01")
+                        .param("password", "pw"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(equalTo("false")));
+    }
+
+    @Test
+    void loginCheck_shouldReject_whenUserNotFound() throws Exception {
+        User invalidUser = new User();
+        invalidUser.setUserID("123");
+        invalidUser.setIsadmin(2);
+
+        when(userService.checkLogin(eq("123"), eq("pw"))).thenReturn(null);
+
+        mockMvc.perform(post("/loginCheck.do")
+                        .param("userID", "123")
+                        .param("password", "pw"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(equalTo("false")));
     }
 
     @Test
