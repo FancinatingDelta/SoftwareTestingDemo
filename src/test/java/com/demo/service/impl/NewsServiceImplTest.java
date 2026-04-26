@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +52,7 @@ class NewsServiceImplTest {
         news2.setNewsID(2);
         news2.setTitle("Title 2");
 
-        Page<News> page = new PageImpl<>(List.of(news1, news2));
+        Page<News> page = new PageImpl<>(new ArrayList<>(Arrays.asList(news1, news2)));
         when(newsDao.findAll(any(Pageable.class))).thenReturn(page);
 
         Page<News> result = newsService.findAll(PageRequest.of(0, 10));

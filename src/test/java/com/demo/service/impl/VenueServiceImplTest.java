@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -91,7 +93,7 @@ class VenueServiceImplTest {
         v3.setVenueID(3);
         v3.setVenueName("Venue C");
 
-        Page<Venue> page = new PageImpl<>(List.of(v1, v2, v3),
+        Page<Venue> page = new PageImpl<>(new ArrayList<>(Arrays.asList(v1, v2, v3)),
                 PageRequest.of(0, 10), 3);
 
         when(venueDao.findAll(any(Pageable.class))).thenReturn(page);
@@ -119,7 +121,7 @@ class VenueServiceImplTest {
         v2.setVenueID(2);
         v2.setVenueName("Venue B");
 
-        when(venueDao.findAll()).thenReturn(List.of(v1, v2));
+        when(venueDao.findAll()).thenReturn(new ArrayList<>(Arrays.asList(v1, v2)));
 
         List<Venue> result = venueService.findAll();
 

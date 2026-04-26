@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -109,7 +110,7 @@ class MessageVoServiceImplTest {
 
     @Test
     void testReturnVo_EmptyList() {
-        List<MessageVo> vos = messageVoService.returnVo(List.of());
+        List<MessageVo> vos = messageVoService.returnVo(new ArrayList<>());
 
         assertNotNull(vos);
         assertTrue(vos.isEmpty());

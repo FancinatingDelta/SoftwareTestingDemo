@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.demo.service.OrderService.*;
@@ -89,7 +91,7 @@ class OrderServiceImplTest {
         o3.setStartTime(start.plusHours(3));
 
         when(orderDao.findByVenueIDAndStartTimeIsBetween(1, start, end))
-                .thenReturn(List.of(o1, o2, o3));
+                .thenReturn(new ArrayList<>(Arrays.asList(o1, o2, o3)));
 
         List<Order> result = orderService.findDateOrder(1, start, end);
 
@@ -116,7 +118,7 @@ class OrderServiceImplTest {
         o3.setUserID("U001");
 
         Page<Order> page = new PageImpl<>(
-                List.of(o1, o2, o3),
+                new ArrayList<>(Arrays.asList(o1, o2, o3)),
                 PageRequest.of(0, 10),
                 3L
         );
@@ -293,7 +295,7 @@ class OrderServiceImplTest {
         o3.setState(STATE_NO_AUDIT);
 
         Page<Order> page = new PageImpl<>(
-                List.of(o1, o2, o3),
+                new ArrayList<>(Arrays.asList(o1, o2, o3)),
                 PageRequest.of(0, 10),
                 3L
         );
@@ -330,7 +332,7 @@ class OrderServiceImplTest {
         o3.setState(STATE_WAIT);
 
         when(orderDao.findAudit(STATE_WAIT, STATE_FINISH))
-                .thenReturn(List.of(o1, o2, o3));
+                .thenReturn(new ArrayList<>(Arrays.asList(o1, o2, o3)));
 
         List<Order> result = orderService.findAuditOrder();
 
